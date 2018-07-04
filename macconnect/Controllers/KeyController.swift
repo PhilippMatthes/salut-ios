@@ -14,16 +14,21 @@ class KeyController: TableViewController {
     
     static let identifier = "KeyController"
 
-    let salut = SalutClient(peerId: MCPeerID(displayName: UIDevice.current.name), password: "secret")
+    var salut: SalutClient!
+    var hashedCode: String!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
         tableView.register(KeyCell.classForCoder(), forCellReuseIdentifier: KeyCell.identifier)
         tableView.reloadData()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        salut = SalutClient(peerId: MCPeerID(displayName: UIDevice.current.name), password: hashedCode)
         salut.delegate = self
         salut.prepare()
-        salut.sendConnectionRequest()
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -31,42 +36,32 @@ class KeyController: TableViewController {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        salut.sendEncryptedDataTransmission(message: String(KeyCode.all[indexPath.row].1))
+        salut.sendData(String(KeyCode.all[indexPath.row].code))
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: KeyCell.identifier) as? KeyCell else {return UITableViewCell()}
-        cell.configure(name: KeyCode.all[indexPath.row].0)
+        cell.configure(name: KeyCode.all[indexPath.row].name)
         return cell
     }
     
 }
 
 extension KeyController: SalutClientDelegate {
-    func client(_ client: SalutClient, sentConnectionRequest package: Package) {
-        
+    func client(_ client: SalutClient, sentSearchRequest package: Package) {
+        print("Client sent search request: \(package.description)")
     }
     
-    func client(_ client: SalutClient, receivedConnectionResponse package: Package) {
-        
+    func client(_ client: SalutClient, receivedSearchResponse package: Package) {
+        print("Client received search response: \(package.description)")
     }
     
-    func client(_ client: SalutClient, sentEncryptedPasswordRequest package: Package) {
-        
+    func client(_ client: SalutClient, recievedDecryptableSearchResponse response: String) {
+        print("Client received decryptable search response: \(response)")
     }
     
-    func client(_ client: SalutClient, receivedEncryptedPasswordState passwordState: Salut.PasswordState) {
-        
+    func client(_ client: SalutClient, sentData package: Package) {
+        print("Client sent data: \(package.description)")
     }
-    
-    func client(_ client: SalutClient, sentEncryptedDataTransmission package: Package) {
-        
-    }
-    
-    func client(_ client: SalutClient, receivedEncryptedInvalidateConnections package: Package) {
-        
-    }
-    
-    
 }
 

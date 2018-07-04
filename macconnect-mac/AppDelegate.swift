@@ -14,28 +14,38 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     
-    let salut = SalutServer(peerId: MCPeerID(displayName: Host.current().name ?? "Mac"), password: "secret")
+    var salut: SalutServer!
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        let code = UserDefaults.standard.object(forKey: "code") as? String ?? String.random(length: 8)
+        UserDefaults.standard.set(code, forKey: "code")
+        salut = SalutServer(peerId: MCPeerID(displayName: Host.current().name ?? "Mac"), password: code.md5())
         salut.delegate = self
         salut.prepare()
-        addMenu()
-        // Insert code here to initialize your application
-    }
-
-    func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        addMenu(code)
+        addButton()
     }
     
-    func addMenu() {
+    func addMenu(_ code: String) {
         let menu = NSMenu()
+        menu.addItem(withTitle: "Code: \(code)", action: nil, keyEquivalent: "")
+        menu.addItem(withTitle: "Reset Code", action: #selector(AppDelegate.resetCode), keyEquivalent: "R")
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "Q"))
         statusItem.menu = menu
-        
+    }
+    
+    func addButton() {
         if let button = statusItem.button {
             button.target = self
             button.image = NSImage(named: NSImage.Name("status"))
         }
+    }
+    
+    @objc func resetCode() {
+        let code = String.random(length: 8)
+        UserDefaults.standard.set(code, forKey: "code")
+        addMenu(code)
+        salut.setPassword(code.md5())
     }
     
     @objc func quit() {
@@ -53,30 +63,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 extension AppDelegate: SalutServerDelegate {
-    func server(_ server: SalutServer, receivedConnectionRequest package: Package) {
-        
+    func server(_ server: SalutServer, receivedSearchRequest package: Package) {
+        print("Received search request: \(package.description)")
     }
     
-    func server(_ server: SalutServer, sentConnectionResponse package: Package) {
-        
+    func server(_ server: SalutServer, sentSearchResponse package: Package) {
+        print("Sent search response: \(package.description)")
     }
     
-    func server(_ server: SalutServer, receivedEncryptedPasswordRequest package: Package) {
-        
+    func server(_ server: SalutServer, receivedDataTransmission package: Package) {
+        print("Received data transmission: \(package.description)")
     }
     
-    func server(_ server: SalutServer, sentEncryptedPasswordResponse package: Package) {
-        
-    }
-    
-    func server(_ server: SalutServer, receivedEncryptedTransmission decryptedTransmission: String) {
-        print("Received transmission: \(decryptedTransmission)")
-        guard let keyCode: UInt16 = UInt16(decryptedTransmission) else {return}
+    func server(_ server: SalutServer, receivedDecryptedTransmission data: String) {
+        print("Received decrypted transmission: \(data)")
+        guard let keyCode: UInt16 = UInt16(data) else {return}
         triggerKeyDown(keyCode)
-    }
-    
-    func server(_ server: SalutServer, sentEncryptedInvalidateConnections package: Package) {
-        
     }
 }
 

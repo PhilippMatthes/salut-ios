@@ -12,28 +12,28 @@ import MultipeerConnectivity
 
 class Salut {
     
+    static let searchRequestFingerPrint = "What are you trying to tell me? That I can dodge bullets?"
+    static let searchResponseFingerPrint = "No, Neo. I'm trying to tell you that when you're ready, you won't have to."
+    
     enum Header: String {
-        case connectionRequest = "ConnectionRequest"
-        case connectionResponse = "ConnectionResponse"
-        case encryptedPasswordRequest = "EncryptedPasswordRequest"
-        case encryptedPasswordResponse = "EncryptedPasswordResponse"
-        case encryptedDataTransmission = "EncryptedDataTransmission"
-        case encryptedInvalidateHosts = "EncryptedInvalidateHosts"
+        case searchRequest = "SearchRequest"
+        case searchResponse = "SearchResponse"
+        case dataTransmission = "DataTransmission"
     }
     
-    enum PasswordState: String {
-        case correct = "correct"
-        case incorrect = "incorrect"
-    }
-    
-    let keyPair: RSA.KeyPair
+    let encryption: Encryption
     let bonjour: Bonjour
-    let password: String
+    var password: String
     
     init(peerId: MCPeerID, password: String) {
-        keyPair = RSA.generateKeys()!
+        encryption = Encryption(key: password)
         bonjour = Bonjour(peerId: peerId)
         self.password = password
+    }
+    
+    func setPassword(_ password: String) {
+        self.password = password
+        encryption.setKey(password)
     }
     
 }

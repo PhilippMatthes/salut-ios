@@ -44,9 +44,7 @@ class Bonjour: NSObject {
         self.serviceBrowser.startBrowsingForPeers()
     }
     
-    func send(_ str: String) {
-        NSLog("%@", "send: \(str) to \(session.connectedPeers.count) peers")
-        
+    func send(_ str: String) {       
         if session.connectedPeers.count > 0 {
             do {
                 try self.session.send(str.data(using: .utf8)!, toPeers: session.connectedPeers, with: .reliable)

@@ -9,16 +9,17 @@
 import Foundation
 
 class Package {
-    let contents: String
+    let contents: EncryptionData
     let header: String
     
-    init(contents: String, header: String) {
+    init(contents: EncryptionData, header: String) {
         self.contents = contents
         self.header = header
     }
     
     func encodeBase64() -> String {
         let data = NSMutableData()
+        NSKeyedArchiver.setClassName("EncryptionData", for: EncryptionData.self)
         let archiver = NSKeyedArchiver(forWritingWith: data)
         archiver.encode(contents, forKey: "contents")
         archiver.encode(header, forKey: "header")
@@ -32,10 +33,13 @@ class Package {
         defer {
             unarchiver.finishDecoding()
         }
+        NSKeyedUnarchiver.setClass(EncryptionData.self, forClassName: "EncryptionData")
         guard
-            let contents = unarchiver.decodeObject(forKey: "contents") as? String,
+            let contents = unarchiver.decodeObject(forKey: "contents") as? EncryptionData,
             let header = unarchiver.decodeObject(forKey: "header") as? String
             else { return nil }
         self.init(contents: contents, header: header)
     }
+    
+    public var description: String { return "<Package Header: \(header), Contents: \(contents.description)>" }
 }
