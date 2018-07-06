@@ -31,6 +31,11 @@ class KeyController: TableViewController {
         salut.prepare()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        salut.postpare()
+    }
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return KeyCode.all.count
     }
@@ -48,20 +53,24 @@ class KeyController: TableViewController {
 }
 
 extension KeyController: SalutClientDelegate {
+    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [String]) {
+        
+    }
+    
     func client(_ client: SalutClient, sentSearchRequest package: Package) {
-        print("Client sent search request: \(package.description)")
+        print("Client sent search request.")
     }
     
     func client(_ client: SalutClient, receivedSearchResponse package: Package) {
-        print("Client received search response: \(package.description)")
+        print("Client received search response.")
     }
     
     func client(_ client: SalutClient, recievedDecryptableSearchResponse response: String) {
-        print("Client received decryptable search response: \(response)")
+        print("Client received decryptable search response.")
     }
     
     func client(_ client: SalutClient, sentData package: Package) {
-        print("Client sent data: \(package.description)")
+        print("Client sent data.")
     }
 }
 

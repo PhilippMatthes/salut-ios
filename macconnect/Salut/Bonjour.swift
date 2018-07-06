@@ -51,8 +51,14 @@ class Bonjour: NSObject {
             } catch let error {
                 NSLog("%@", "Error for sending: \(error)")
             }
+        } else {
+            NSLog("%@", "No peers connected to device.")
         }
-        
+    }
+    
+    func postpare() {
+        self.serviceAdvertiser.stopAdvertisingPeer()
+        self.serviceBrowser.stopBrowsingForPeers()
     }
     
     deinit {
@@ -89,6 +95,7 @@ extension Bonjour: MCNearbyServiceBrowserDelegate {
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         NSLog("%@", "lostPeer: \(peerID)")
+        session.cancelConnectPeer(peerID)
     }
     
 }
@@ -96,13 +103,12 @@ extension Bonjour: MCNearbyServiceBrowserDelegate {
 extension Bonjour: MCSessionDelegate {
     
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        NSLog("%@", "peer \(peerID) didChangeState: \(state)")
         self.delegate?.manager(self, didChangeConnectedDevices: session.connectedPeers.map{$0.displayName})
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         NSLog("%@", "didReceiveData: \(data)")
-        let str = String(data: data, encoding: .utf8)!
+        guard let str = String(data: data, encoding: .utf8) else {return}
         self.delegate?.manager(self, transmittedPayload: str)
     }
     

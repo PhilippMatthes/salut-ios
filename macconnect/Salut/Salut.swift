@@ -36,4 +36,8 @@ class Salut {
         encryption.setKey(password)
     }
     
+    func postpare() {
+        bonjour.postpare()
+    }
+    
 }

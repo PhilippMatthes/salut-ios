@@ -13,6 +13,7 @@ protocol SalutClientDelegate {
     func client(_ client: SalutClient, receivedSearchResponse package: Package)
     func client(_ client: SalutClient, recievedDecryptableSearchResponse response: String)
     func client(_ client: SalutClient, sentData package: Package)
+    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [String])
 }
 
 class SalutClient: Salut {
@@ -20,7 +21,6 @@ class SalutClient: Salut {
     var delegate: SalutClientDelegate?
     
     func sendSearchRequest() {
-        print(password)
         guard let encryptedRequest = encryption.encrypt(Salut.searchRequestFingerPrint) else {return}
         let package = Package(contents: encryptedRequest, header: Header.searchRequest.rawValue)
         bonjour.send(package.encodeBase64())
@@ -52,7 +52,7 @@ class SalutClient: Salut {
 
 extension SalutClient: BonjourDelegate {
     func manager(_ manager: Bonjour, didChangeConnectedDevices connectedDevices: [String]) {
-        // NOTHING
+        delegate?.client(self, didChangeConnectedDevices: connectedDevices)
     }
     
     func manager(_ manager: Bonjour, transmittedPayload payload: String) {

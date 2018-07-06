@@ -49,6 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func quit() {
+        salut.postpare()
         NSApplication.shared.terminate(self)
     }
 
@@ -64,19 +65,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 extension AppDelegate: SalutServerDelegate {
     func server(_ server: SalutServer, receivedSearchRequest package: Package) {
-        print("Received search request: \(package.description)")
+        print("Received search request.")
     }
     
     func server(_ server: SalutServer, sentSearchResponse package: Package) {
-        print("Sent search response: \(package.description)")
+        print("Sent search response.")
     }
     
     func server(_ server: SalutServer, receivedDataTransmission package: Package) {
-        print("Received data transmission: \(package.description)")
+        print("Received data transmission.")
     }
     
     func server(_ server: SalutServer, receivedDecryptedTransmission data: String) {
-        print("Received decrypted transmission: \(data)")
+        print("Received decrypted transmission.")
         guard let keyCode: UInt16 = UInt16(data) else {return}
         triggerKeyDown(keyCode)
     }

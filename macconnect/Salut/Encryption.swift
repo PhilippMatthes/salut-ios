@@ -23,6 +23,7 @@ class Encryption {
     }
     
     func encrypt(_ input: String) -> EncryptionData? {
+        print(key)
         let encrypted: Array<UInt8>
         do {
             encrypted = try ChaCha20(key: key, iv: iv).encrypt(Array(input.utf8))
@@ -35,6 +36,7 @@ class Encryption {
     
     
     func decrypt(_ input: EncryptionData) -> String? {
+        print(key)
         let decrypted: Array<UInt8>
         do {
             decrypted = try ChaCha20(key: key, iv: iv).decrypt(input.raw)
