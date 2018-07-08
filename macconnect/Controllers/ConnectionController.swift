@@ -13,34 +13,57 @@ import MultipeerConnectivity
 class ConnectionController: UIViewController {
     
     @IBOutlet weak var input: TextField!
-    @IBOutlet weak var button: RaisedButton!
+    @IBOutlet weak var button: UIButton!
     @IBOutlet weak var table: TableView!
+    @IBOutlet weak var keyBoardSelection: UISegmentedControl!
     
-    var clients = [String]()
+    var clients = [MCPeerID]()
     
-    var salut: SalutClient!
+    var salut: SalutClient?
+    var keyBoardLocale: KeyCode.Locale!
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        let code = UserDefaults.standard.object(forKey: "code") as? String ?? ""
-        let hashedCode = code.md5()
-        salut = SalutClient(peerId: MCPeerID(displayName: UIDevice.current.name), password: hashedCode)
-        input.text = code
-        salut.delegate = self
-        salut.prepare()
-        salut.sendSearchRequest()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
+        let code = UserDefaults.standard.object(forKey: "code") as? String ?? ""
+        
+        prepareSalut(code)
+        prepareButton()
+        prepareInput(code)
+        prepareTable()
+        
+        hideButton()
+        showSegmentedControl()
+    }
+    
+    func prepareSalut(_ code: String) {
+        let hashedCode = code.md5()
+        if salut == nil {
+            salut = SalutClient(peerId: MCPeerID(displayName: UIDevice.current.name), password: hashedCode)
+            salut!.prepare()
+            salut!.sendSearchRequest()
+        }
+        
+        salut!.delegate = self
+    }
+    
+    func prepareButton() {
         button.titleLabel?.font = RobotoFont.bold(with: 20.0)
         button.backgroundColor = .white
-        button.setTitle("Waiting for peers", for: .normal)
+        setLoginButtonState(active: clients.count > 0)
+        button.layer.cornerRadius = button.layer.frame.height / 2
+    }
+    
+    func prepareInput(_ code: String) {
+        input.text = code
         input.textColor = .white
         input.detailColor = .white
         input.dividerActiveColor = .white
         input.tintColor = .white
         input.dividerColor = .white
-        input.placeholder = "Enter Code"
-        input.placeholderActiveColor = .white
-        
+    }
+    
+    func prepareTable() {
         table.dataSource = self
         table.delegate = self
         table.backgroundColor = .clear
@@ -50,33 +73,59 @@ class ConnectionController: UIViewController {
         table.isUserInteractionEnabled = false
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        salut.postpare()
+    func hideButton() {
+        button.isHidden = true
+    }
+    
+    func showButton() {
+        button.isHidden = false
+    }
+    
+    func hideSegmentedControl() {
+        keyBoardSelection.isHidden = true
+    }
+    
+    func showSegmentedControl() {
+        keyBoardSelection.selectedSegmentIndex = UISegmentedControlNoSegment
+        keyBoardSelection.isHidden = false
     }
     
     @IBAction func submit(_ sender: Any) {
         if clients.count > 0 {
             if let code = input.text {
                 let hashedCode = code.md5()
-                salut.setPassword(hashedCode)
-                salut.sendSearchRequest()
+                salut!.setPassword(hashedCode)
+                salut!.sendSearchRequest()
             }
         }
     }
     
+    @IBAction func keyBoardSelectionChanged(_ sender: UISegmentedControl) {
+        keyBoardLocale = sender.selectedSegmentIndex == 0 ? .US : .DE
+        hideSegmentedControl()
+        showButton()
+    }
+    
     func setLoginButtonState(active: Bool) {
-        DispatchQueue.main.async {
-            self.button.setTitle(active ? "Login" : "No devices found", for: .normal)
-        }
+        self.button.setTitle(active ? "Login" : "Waiting for peers", for: .normal)
     }
 }
 
 extension ConnectionController: SalutClientDelegate {
-    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [String]) {
-        setLoginButtonState(active: connectedDevices.count > 0)
-        clients = connectedDevices
-        DispatchQueue.main.async {self.table.reloadData()}
+    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [MCPeerID]) {
+        DispatchQueue.main.async {
+            self.setLoginButtonState(active: connectedDevices.count > 0)
+            self.clients = connectedDevices
+            self.table.reloadData()
+        }
+    }
+    
+    func client(_ client: SalutClient, receivedInvalidateConnection package: Package) {
+        
+    }
+    
+    func client(_ client: SalutClient, recievedDecryptableInvalidateConnection response: String) {
+        
     }
     
     func client(_ client: SalutClient, sentSearchRequest package: Package) {
@@ -90,13 +139,12 @@ extension ConnectionController: SalutClientDelegate {
     func client(_ client: SalutClient, recievedDecryptableSearchResponse response: String) {
         print("Client received decryptable search response: \(response)")
         DispatchQueue.main.async {
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let controller = storyboard.instantiateViewController(withIdentifier: "KeyController") as! KeyController
-            if let input = self.input.text {
-                controller.hashedCode = input.md5()
-                UserDefaults.standard.set(input, forKey: "code")
-                self.present(controller, animated: true, completion: nil)
-            }
+            guard let input = self.input.text else {return}
+            guard let salut = self.salut else {return}
+            let controllers = KeyType.all().map {KeyController($0, salut, self.keyBoardLocale)}
+            UserDefaults.standard.set(input, forKey: "code")
+            let tabsController = TabsViewController(viewControllers: controllers)
+            self.present(tabsController, animated: true, completion: nil)
         }
     }
     
@@ -115,8 +163,10 @@ extension ConnectionController: UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell") as? TableViewCell else {return UITableViewCell()}
-        cell.textLabel?.text = clients[indexPath.row]
+        cell.textLabel?.text = clients[indexPath.row].displayName
         cell.layer.cornerRadius = cell.layer.frame.height / 2
+        cell.layer.borderColor = UIColor(rgb: 0x7CD201, alpha: 1.0).cgColor
+        cell.layer.borderWidth = 3.0
         cell.contentView.transform = CGAffineTransform(scaleX: 1, y: -1)
         cell.alpha = 0
         UIView.animate(withDuration: 0.2, animations: {

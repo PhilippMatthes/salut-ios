@@ -13,6 +13,7 @@
 		BE0B1A5A20E900EE00573B39 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE0B1A5920E900EE00573B39 /* Assets.xcassets */; };
 		BE0B1A5D20E900EE00573B39 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BE0B1A5B20E900EE00573B39 /* LaunchScreen.storyboard */; };
 		BE0B1A6520E900FD00573B39 /* Bonjour.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0B1A6420E900FD00573B39 /* Bonjour.swift */; };
+		BE20B5A620EF86F700BB5507 /* TabsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE20B5A520EF86F700BB5507 /* TabsViewController.swift */; };
 		BE2F576820E90BBE00EB7498 /* Key.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2F576720E90BBE00EB7498 /* Key.swift */; };
 		BE2F576B20E9139800EB7498 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BE2F576920E9139800EB7498 /* Main.storyboard */; };
 		BE2F577520E92D9B00EB7498 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE2F577420E92D9B00EB7498 /* AppDelegate.swift */; };
@@ -79,6 +80,7 @@
 		BE0B1A5C20E900EE00573B39 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BE0B1A5E20E900EE00573B39 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BE0B1A6420E900FD00573B39 /* Bonjour.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bonjour.swift; sourceTree = "<group>"; };
+		BE20B5A520EF86F700BB5507 /* TabsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabsViewController.swift; sourceTree = "<group>"; };
 		BE2F576720E90BBE00EB7498 /* Key.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Key.swift; sourceTree = "<group>"; };
 		BE2F576A20E9139800EB7498 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		BE2F576D20E92B1F00EB7498 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
@@ -278,6 +280,7 @@
 				BE0B1A5220E900ED00573B39 /* AppDelegate.swift */,
 				BE0B1A5420E900ED00573B39 /* KeyController.swift */,
 				BE608C0220EB814200672CCB /* ConnectionController.swift */,
+				BE20B5A520EF86F700BB5507 /* TabsViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -501,6 +504,7 @@
 				BEED57EE20EB833D0074551D /* UIImageExtension.swift in Sources */,
 				BE0B1A6520E900FD00573B39 /* Bonjour.swift in Sources */,
 				BEED57F720EB833D0074551D /* BadgeExtension.swift in Sources */,
+				BE20B5A620EF86F700BB5507 /* TabsViewController.swift in Sources */,
 				BEED57F020EB833D0074551D /* CLLocationExtension.swift in Sources */,
 				BEEAF24B20E9FF5E0045A2DE /* Encryption.swift in Sources */,
 				BE608C0020EB793100672CCB /* EncryptionData.swift in Sources */,
@@ -728,7 +732,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philippmatthes.macconnect-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -751,7 +755,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.philippmatthes.macconnect-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

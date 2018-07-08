@@ -7,12 +7,15 @@
 //
 
 import Foundation
+import MultipeerConnectivity
 
 protocol SalutServerDelegate {
     func server(_ server: SalutServer, receivedSearchRequest package: Package)
     func server(_ server: SalutServer, sentSearchResponse package: Package)
     func server(_ server: SalutServer, receivedDataTransmission package: Package)
+    func server(_ server: SalutServer, sentInvalidateConnection package: Package)
     func server(_ server: SalutServer, receivedDecryptedTransmission data: String)
+    func server(_ server: SalutServer, didChangeConnectedDevices connectedDevices: [MCPeerID])
 }
 
 class SalutServer: Salut {
@@ -48,11 +51,18 @@ class SalutServer: Salut {
         delegate?.server(self, receivedDecryptedTransmission: decrypted)
     }
     
+    func sendInvalidateConnection() {
+        guard let encryptedResponse = encryption.encrypt(Salut.invalidateConnectionFingerPrint) else {return}
+        let package = Package(contents: encryptedResponse, header: Header.invalidateConnection.rawValue)
+        bonjour.send(package.encodeBase64())
+        delegate?.server(self, sentInvalidateConnection: package)
+    }
+    
 }
 
 extension SalutServer: BonjourDelegate {
-    func manager(_ manager: Bonjour, didChangeConnectedDevices connectedDevices: [String]) {
-        // Nothing
+    func manager(_ manager: Bonjour, didChangeConnectedDevices connectedDevices: [MCPeerID]) {
+        delegate?.server(self, didChangeConnectedDevices: connectedDevices)
     }
     
     func manager(_ manager: Bonjour, transmittedPayload payload: String) {

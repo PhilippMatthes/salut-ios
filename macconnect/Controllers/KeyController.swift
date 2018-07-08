@@ -10,55 +10,114 @@ import UIKit
 import Material
 import MultipeerConnectivity
 
-class KeyController: TableViewController {
+class KeyController: CollectionViewController {
     
     static let identifier = "KeyController"
 
     var salut: SalutClient!
-    var hashedCode: String!
+    
+    var keyType: KeyType!
+    var keys: [Key]!
+    
+    var flowLayout: UICollectionViewFlowLayout {
+        let _flowLayout = UICollectionViewFlowLayout()
+        
+        _flowLayout.itemSize = CGSize(width: 60, height: 60)
+        _flowLayout.sectionInset = UIEdgeInsetsMake(8, 8, 8, 8)
+        _flowLayout.scrollDirection = .vertical
+        _flowLayout.minimumInteritemSpacing = 0.0
+        
+        return _flowLayout
+    }
+    
+    convenience init(_ keyType: KeyType, _ salutClient: SalutClient, _ keyBoardLocale: KeyCode.Locale) {
+        self.init()
+        self.keyType = keyType
+        self.salut = salutClient
+        
+        switch keyBoardLocale {
+        case .US:
+            keys = KeyCode.US.filter {$0.types.contains(keyType)}
+        case .DE:
+            keys = KeyCode.DE.filter {$0.types.contains(keyType)}
+        }
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.delegate = self
-        tableView.register(KeyCell.classForCoder(), forCellReuseIdentifier: KeyCell.identifier)
-        tableView.reloadData()
+        prepareCollectionView()
+        prepareNotificationCenter()
+        prepareTabItem()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        salut = SalutClient(peerId: MCPeerID(displayName: UIDevice.current.name), password: hashedCode)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         salut.delegate = self
-        salut.prepare()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        salut.postpare()
+    func prepareCollectionView() {
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(KeyCell.classForCoder(), forCellWithReuseIdentifier: KeyCell.identifier)
+        collectionView.backgroundColor = UIColor(rgb: 0x7CD201, alpha: 1.0)
+        collectionView.collectionViewLayout = flowLayout
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.reloadData()
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return KeyCode.all.count
+    func prepareNotificationCenter() {
+        let notificationCenter = NotificationCenter.default
+        notificationCenter.addObserver(self, selector: #selector(appMovedToBackground), name: Notification.Name.UIApplicationWillResignActive, object: nil)
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        salut.sendData(String(KeyCode.all[indexPath.row].code))
+    func prepareTabItem() {
+        tabItem.title = keyType.rawValue
+        tabItem.titleColor = Color.grey.darken3
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: KeyCell.identifier) as? KeyCell else {return UITableViewCell()}
-        cell.configure(name: KeyCode.all[indexPath.row].name)
+    @objc func appMovedToBackground() {
+        moveBackToConnectionController()
+    }
+    
+    func moveBackToConnectionController() {
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return keys.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        salut.sendData(String(keys[indexPath.row].code))
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: KeyCell.identifier, for: indexPath) as! KeyCell
+        cell.configure(keys[indexPath.row])
         return cell
     }
     
 }
 
 extension KeyController: SalutClientDelegate {
-    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [String]) {
+    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [MCPeerID]) {
+        print("Client did change connected devices.")
+    }
+    
+    func client(_ client: SalutClient, recievedDecryptableInvalidateConnection response: String) {
+        moveBackToConnectionController()
+    }
+    
+    func client(_ client: SalutClient, receivedInvalidateConnection package: Package) {
         
     }
     
     func client(_ client: SalutClient, sentSearchRequest package: Package) {
-        print("Client sent search request.")
+        
     }
     
     func client(_ client: SalutClient, receivedSearchResponse package: Package) {

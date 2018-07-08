@@ -14,11 +14,13 @@ class Salut {
     
     static let searchRequestFingerPrint = "What are you trying to tell me? That I can dodge bullets?"
     static let searchResponseFingerPrint = "No, Neo. I'm trying to tell you that when you're ready, you won't have to."
+    static let invalidateConnectionFingerPrint = "You've been living in a dream world, Neo."
     
     enum Header: String {
         case searchRequest = "SearchRequest"
         case searchResponse = "SearchResponse"
         case dataTransmission = "DataTransmission"
+        case invalidateConnection = "InvalidateConnection"
     }
     
     let encryption: Encryption

@@ -7,13 +7,16 @@
 //
 
 import Foundation
+import MultipeerConnectivity
 
 protocol SalutClientDelegate {
     func client(_ client: SalutClient, sentSearchRequest package: Package)
     func client(_ client: SalutClient, receivedSearchResponse package: Package)
     func client(_ client: SalutClient, recievedDecryptableSearchResponse response: String)
     func client(_ client: SalutClient, sentData package: Package)
-    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [String])
+    func client(_ client: SalutClient, receivedInvalidateConnection package: Package)
+    func client(_ client: SalutClient, recievedDecryptableInvalidateConnection response: String)
+    func client(_ client: SalutClient, didChangeConnectedDevices connectedDevices: [MCPeerID])
 }
 
 class SalutClient: Salut {
@@ -44,6 +47,16 @@ class SalutClient: Salut {
         delegate?.client(self, sentData: package)
     }
     
+    func receivedInvalidateConnection(package: Package) {
+        delegate?.client(self, receivedInvalidateConnection: package)
+        guard
+            let decrypted = encryption.decrypt(package.contents)
+            else {return}
+        if decrypted == Salut.invalidateConnectionFingerPrint {
+            delegate?.client(self, recievedDecryptableInvalidateConnection: decrypted)
+        }
+    }
+    
     func prepare() {
         bonjour.delegate = self
     }
@@ -51,7 +64,7 @@ class SalutClient: Salut {
 }
 
 extension SalutClient: BonjourDelegate {
-    func manager(_ manager: Bonjour, didChangeConnectedDevices connectedDevices: [String]) {
+    func manager(_ manager: Bonjour, didChangeConnectedDevices connectedDevices: [MCPeerID]) {
         delegate?.client(self, didChangeConnectedDevices: connectedDevices)
     }
     
@@ -60,6 +73,8 @@ extension SalutClient: BonjourDelegate {
         switch package.header {
             case Header.searchResponse.rawValue:
                 receivedSearchResponse(package: package)
+            case Header.invalidateConnection.rawValue:
+                receivedInvalidateConnection(package: package)
             default:
                 break
         }
